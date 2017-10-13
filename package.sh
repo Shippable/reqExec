@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-readonly VE_LOCATION=/tmp/cexec_pkg_ve
+readonly VE_LOCATION=/tmp/reqExec_pkg_ve
 
 init_ve() {
   local arch=$(uname -m)
@@ -30,4 +30,3 @@ main() {
 }
 
 main
-

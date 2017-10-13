@@ -4,7 +4,7 @@ from urlparse import urlparse
 
 class Config(dict):
     """
-    Global config. CEXEC does not boot up unless all variables defined here are
+    Global config. reqExec does not boot up unless all variables defined here are
     initialized
     """
     def __init__(self):
@@ -30,9 +30,9 @@ class Config(dict):
         self['SYSTEM_LOGGING_ENABLED'] = False
         self['USER_SYSTEM_LOGGING_ENABLED'] = True
 
-        self['MESSAGE_DIR'] = os.getenv('MESSAGE_DIR', '/tmp/cexec')
+        self['MESSAGE_DIR'] = os.getenv('MESSAGE_DIR', '/tmp/reqExec')
         self['MESSAGE_JSON_NAME'] = os.getenv('MESSAGE_JSON_NAME', 'message.json')
-        self['WHO'] = os.getenv('WHO', 'cexec')
+        self['WHO'] = os.getenv('WHO', 'reqExec')
         self['SSH_DIR'] = os.getenv('SSH_DIR', '/tmp/ssh')
         self['ARTIFACTS_DIR'] = os.getenv('ARTIFACTS_DIR', '/shippableci')
         self['MAX_CONSOLES_SIZE_MB'] = os.getenv('MAX_CONSOLES_SIZE_MB', 16)
@@ -54,4 +54,3 @@ class Config(dict):
         for k, v in self.iteritems():
             print('{0} - {1}'.format(k, v))
         return ''
-
