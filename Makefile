@@ -3,7 +3,7 @@
 default: package
 
 image:
-	docker build -t shippable/req-exec:master .
+	docker build -t shippable/reqexec:master .
 
 package: image
-	docker run -v $(shell pwd):/home/shippable/reqExec shippable/req-exec:master ./package.sh
+	docker run -v $(shell pwd):/home/shippable/reqExec shippable/reqexec:master ./package.sh
