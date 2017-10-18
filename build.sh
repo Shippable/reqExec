@@ -157,20 +157,7 @@ check_uuid_binary(){
 }
 
 run_build() {
-  local use_default_arch=true
-  if [ ! -z "$SHIPPABLE_NODE_ARCHITECTURE" ]; then
-    if [ -f /home/shippable/reqExec/dist/"$SHIPPABLE_NODE_ARCHITECTURE"/linux/main/main ]; then
-      use_default_arch=false
-    else
-      echo "reqExec binary not present in $SHIPPABLE_NODE_ARCHITECTURE folder..."
-    fi
-  fi
-  if [ "$use_default_arch" == true ]; then
-    echo "Running build using the default, x86_64, binary..."
-    /home/shippable/reqExec/dist/main/main
-  else
-    /home/shippable/reqExec/dist/"$SHIPPABLE_NODE_ARCHITECTURE"/linux/main/main
-  fi
+  /home/shippable/reqExec/dist/main/main
 }
 
 main() {
