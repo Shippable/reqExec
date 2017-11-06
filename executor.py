@@ -52,8 +52,9 @@ class Executor():
     def script_runner(self):
         proc = subprocess.Popen(
             self.script,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT
+            stdout = subprocess.PIPE,
+            stderr = subprocess.STDOUT,
+            cwd = self.config['BUILD_DIR']
         )
 
         for line in iter(proc.stdout.readline, ''):
