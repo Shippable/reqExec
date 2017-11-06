@@ -1,6 +1,8 @@
 class Config(dict):
     def __init__(self, job_envs_path):
         self['CONSOLE_BUFFER_LENGTH'] = 20
+        self['CONSOLE_FLUSH_INTERVAL_SECONDS'] = 3
+
         with open(job_envs_path) as job_envs:
             for env in job_envs:
                 key, value = env.split('=', 1)

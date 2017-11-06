@@ -14,5 +14,5 @@ if __name__ == '__main__':
         job_envs_path = sys.argv[2]
 
     ex = Executor(script_path, job_envs_path)
-    exit_code = ex.execute()
-    os._exit(exit_code)
+    ex.execute()
+    os._exit(ex.exit_code)

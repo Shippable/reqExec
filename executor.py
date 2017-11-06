@@ -16,6 +16,9 @@ class Executor():
             self.config['BUILDER_API_TOKEN']
         )
 
+        self.exit_code = 0
+        self.is_executing = False
+
         # Consoles
         self.console_buffer = []
         self.console_buffer_lock = threading.Lock()
@@ -26,28 +29,41 @@ class Executor():
         self.show_group = None
 
     def execute(self):
+        script_runner_thread = threading.Thread(target = self.script_runner)
+        script_runner_thread.start()
+
+        # Wait for the execution to complete.
+        self.is_executing = True
+        console_flush_timer = threading.Timer(
+            self.config['CONSOLE_FLUSH_INTERVAL_SECONDS'],
+            self.set_console_flush_timer
+        )
+        console_flush_timer.start()
+        script_runner_thread.join()
+        self.is_executing = False
+
+        # Something went wrong with the execution if it's still alive.
+        # TODO: Add more logs here later.
+        if script_runner_thread.is_alive():
+            self.exit_code = 1
+
+        self.flush_console_buffer()
+
+    def script_runner(self):
         proc = subprocess.Popen(
             self.script,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
 
-        exit_code = 0
         for line in iter(proc.stdout.readline, ''):
             success = self.handle_console_line(line)
             if success == True or success == False:
                 if not success:
-                    exit_code = 1
+                    self.exit_code = 1
                 break
 
         proc.kill()
-
-        # Flush any remaining consoles
-        self.flush_console_buffer()
-        return exit_code
-
-    def get_timestamp(self):
-        return int(time.time() * 1000000)
 
     def handle_console_line(self, line):
         timestamp = self.get_timestamp()
@@ -67,7 +83,7 @@ class Executor():
                 'timestamp': timestamp,
                 'isShown': self.show_group
             }
-            self.handle_console_output(console_out)
+            self.append_to_console_buffer(console_out)
         elif line.startswith('__SH__CMD__START__'):
             self.current_cmd_info = line_split[1]
             current_cmd_name = '|'.join(line_split[2:])
@@ -82,7 +98,7 @@ class Executor():
                 'timestamp': timestamp,
             }
             if parent_id:
-                self.handle_console_output(console_out)
+                self.append_to_console_buffer(console_out)
         elif line.startswith('__SH__CMD__END__'):
             current_cmd_end_info = line_split[1]
             current_cmd_end_name = '|'.join(line_split[2:])
@@ -103,7 +119,7 @@ class Executor():
                 'isShown': self.show_group
             }
             if parent_id:
-                self.handle_console_output(console_out)
+                self.append_to_console_buffer(console_out)
         elif line.startswith('__SH__GROUP__END__'):
             current_grp_end_info = line_split[1]
             current_grp_end_name = '|'.join(line_split[2:])
@@ -121,7 +137,7 @@ class Executor():
                 'isSuccess': is_success,
                 'isShown': self.show_group
             }
-            self.handle_console_output(console_out)
+            self.append_to_console_buffer(console_out)
         elif line.startswith('__SH__SCRIPT_END_SUCCESS__'):
             return True
         elif line.startswith('__SH__SCRIPT_END_FAILURE__'):
@@ -137,20 +153,31 @@ class Executor():
                 'timestamp': timestamp,
             }
             if parent_id:
-                self.handle_console_output(console_out)
+                self.append_to_console_buffer(console_out)
 
         return None
 
-    def handle_console_output(self, console_out):
+    def append_to_console_buffer(self, console_out):
         with self.console_buffer_lock:
             self.console_buffer.append(console_out)
 
         if len(self.console_buffer) > self.config['CONSOLE_BUFFER_LENGTH']:
             self.flush_console_buffer()
 
+    def set_console_flush_timer(self):
+        if not self.is_executing:
+            return
+
+        self.flush_console_buffer()
+        console_flush_timer = threading.Timer(
+            self.config['CONSOLE_FLUSH_INTERVAL_SECONDS'],
+            self.set_console_flush_timer
+        )
+        console_flush_timer.start()
+
     def flush_console_buffer(self):
         if len(self.console_buffer) == 0:
-            print 'No logs to flush'
+            return
         else:
             with self.console_buffer_lock:
                 for console in self.console_buffer:
@@ -164,3 +191,6 @@ class Executor():
 
             del self.console_buffer
             self.console_buffer = []
+
+    def get_timestamp(self):
+        return int(time.time() * 1000000)
