@@ -28,15 +28,23 @@ class Executor():
     def execute(self):
         proc = subprocess.Popen(
             self.script,
-            stdout=subprocess.PIPE
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
         )
 
+        exit_code = 0
         for line in iter(proc.stdout.readline, ''):
-            print line
-            self.handle_console_line(line)
+            success = self.handle_console_line(line)
+            if success == True or success == False:
+                if not success:
+                    exit_code = 1
+                break
 
-        self.flush_console_buffer()
         proc.kill()
+
+        # Flush any remaining consoles
+        self.flush_console_buffer()
+        return exit_code
 
     def get_timestamp(self):
         return int(time.time() * 1000000)
@@ -114,6 +122,10 @@ class Executor():
                 'isShown': self.show_group
             }
             self.handle_console_output(console_out)
+        elif line.startswith('__SH__SCRIPT_END_SUCCESS__'):
+            return True
+        elif line.startswith('__SH__SCRIPT_END_FAILURE__'):
+            return False
         else:
             parent_id = self.current_cmd_info.get('id') if \
                 self.current_cmd_info else None
@@ -126,6 +138,8 @@ class Executor():
             }
             if parent_id:
                 self.handle_console_output(console_out)
+
+        return None
 
     def handle_console_output(self, console_out):
         with self.console_buffer_lock:
