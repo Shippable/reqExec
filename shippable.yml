@@ -1,0 +1,5 @@
+language: python
+build:
+  ci:
+    - pip install -r ./requirements/dev.txt
+    - make lint

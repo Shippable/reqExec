@@ -1,8 +1,14 @@
-import os
-from executor import Executor
+"""
+Entrypoint to reqExec
+"""
 import sys
+from executor import Executor
 
-if __name__ == '__main__':
+def main():
+    """
+    Calls the executor to execute a script along with required job
+    config
+    """
     if len(sys.argv) < 2:
         print 'Missing script name'
         sys.exit(1)
@@ -15,4 +21,7 @@ if __name__ == '__main__':
 
     ex = Executor(script_path, job_envs_path)
     ex.execute()
-    os._exit(ex.exit_code)
+    sys.exit(ex.exit_code)
+
+if __name__ == '__main__':
+    main()
