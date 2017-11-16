@@ -5,6 +5,7 @@ import subprocess
 import threading
 import time
 import uuid
+import os
 
 class Executor():
     def __init__(self, script, job_envs_path):
@@ -50,11 +51,18 @@ class Executor():
         self.flush_console_buffer()
 
     def script_runner(self):
+        # We need to unset the LD_LIBRARY_PATH set by pyinstaller. This
+        # will ensure the script prefers libraries on system rather
+        # than the ones bundled during build time.
+        env = dict(os.environ)
+        env.pop('LD_LIBRARY_PATH', None)
+
         proc = subprocess.Popen(
             self.script,
             stdout = subprocess.PIPE,
             stderr = subprocess.STDOUT,
-            cwd = self.config['BUILD_DIR']
+            cwd = self.config['BUILD_DIR'],
+            env = env
         )
 
         for line in iter(proc.stdout.readline, ''):
