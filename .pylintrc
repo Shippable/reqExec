@@ -1,0 +1,7 @@
+[MASTER]
+min-public-methods=1
+
+[DESIGN]
+max-branches=15
+max-statements=60
+max-attributes=15

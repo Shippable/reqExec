@@ -1,56 +1,69 @@
-from config import Config
-from shippable_adapter import ShippableAdapter
+"""
+Executor executes a script, parses consoles and posts console logs
+"""
 import json
 import subprocess
 import threading
 import time
 import uuid
 import os
+from config import Config
+from shippable_adapter import ShippableAdapter
 
-class Executor():
+class Executor(object):
+    """
+    Sets up config for the job, defaults for exit code and consoles
+    """
     def __init__(self, script, job_envs_path):
-        self.script = script
-        self.config = Config(job_envs_path)
+        #
+        # Private
+        #
+        self._script = script
+        self._config = Config(job_envs_path)
 
-        self.shippable_adapter = ShippableAdapter(
-            self.config['SHIPPABLE_API_URL'],
-            self.config['BUILDER_API_TOKEN']
+        self._shippable_adapter = ShippableAdapter(
+            self._config['SHIPPABLE_API_URL'],
+            self._config['BUILDER_API_TOKEN']
         )
 
-        self.exit_code = 0
-        self.is_executing = False
+        self._is_executing = False
 
         # Consoles
-        self.console_buffer = []
-        self.console_buffer_lock = threading.Lock()
+        self._console_buffer = []
+        self._console_buffer_lock = threading.Lock()
         # Console state
-        self.current_group_info = None
-        self.current_group_name = None
-        self.current_cmd_info = None
-        self.show_group = None
+        self._current_group_info = None
+        self._current_group_name = None
+        self._current_cmd_info = None
+        self._show_group = None
+
+        #
+        # Public
+        #
+        self.exit_code = 0
 
     def execute(self):
-        script_runner_thread = threading.Thread(target = self.script_runner)
+        """
+        Starts threads to execute the script and flush consoles
+        """
+        script_runner_thread = threading.Thread(target=self._script_runner)
         script_runner_thread.start()
 
         # Wait for the execution to complete.
-        self.is_executing = True
+        self._is_executing = True
         console_flush_timer = threading.Timer(
-            self.config['CONSOLE_FLUSH_INTERVAL_SECONDS'],
-            self.set_console_flush_timer
+            self._config['CONSOLE_FLUSH_INTERVAL_SECONDS'],
+            self._set_console_flush_timer
         )
         console_flush_timer.start()
         script_runner_thread.join()
-        self.is_executing = False
+        self._is_executing = False
+        self._flush_console_buffer()
 
-        # Something went wrong with the execution if it's still alive.
-        # TODO: Add more logs here later.
-        if script_runner_thread.is_alive():
-            self.exit_code = 1
-
-        self.flush_console_buffer()
-
-    def script_runner(self):
+    def _script_runner(self):
+        """
+        Runs the script, handles console output and finally sets the exit code
+        """
         # We need to unset the LD_LIBRARY_PATH set by pyinstaller. This
         # will ensure the script prefers libraries on system rather
         # than the ones bundled during build time.
@@ -58,102 +71,113 @@ class Executor():
         env.pop('LD_LIBRARY_PATH', None)
 
         proc = subprocess.Popen(
-            self.script,
-            stdout = subprocess.PIPE,
-            stderr = subprocess.STDOUT,
-            cwd = self.config['BUILD_DIR'],
-            env = env
+            self._script,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            cwd=self._config['BUILD_DIR'],
+            env=env
         )
 
         for line in iter(proc.stdout.readline, ''):
-            success = self.handle_console_line(line)
-            if success == True or success == False:
-                if not success:
-                    self.exit_code = 1
+            is_script_success, is_complete = self._handle_console_line(line)
+
+            if not is_script_success:
+                self.exit_code = 1
+
+            if is_complete:
                 break
 
         proc.kill()
 
-    def handle_console_line(self, line):
-        timestamp = self.get_timestamp()
+    def _handle_console_line(self, line):
+        """
+        Parses a single line of console output and pushes it to buffer
+        This also returns whether the console line is successful and the
+        script is complete
+        """
+        is_script_success = True
+        is_complete = False
+        timestamp = Executor._get_timestamp()
         line_split = line.split('|')
         if line.startswith('__SH__GROUP__START__'):
-            self.current_group_info = line_split[1]
-            self.current_group_name = '|'.join(line_split[2:])
-            self.current_group_info = json.loads(self.current_group_info)
-            self.show_group = self.current_group_info.get('is_shown', True)
-            if self.show_group == 'false':
-                self.show_group = False
+            self._current_group_info = line_split[1]
+            self._current_group_name = '|'.join(line_split[2:])
+            self._current_group_info = json.loads(self._current_group_info)
+            self._show_group = self._current_group_info.get('is_shown', True)
+            if self._show_group == 'false':
+                self._show_group = False
             console_out = {
-                'consoleId': self.current_group_info.get('id'),
+                'consoleId': self._current_group_info.get('id'),
                 'parentConsoleId': 'root',
                 'type': 'grp',
-                'message': self.current_group_name,
+                'message': self._current_group_name,
                 'timestamp': timestamp,
-                'isShown': self.show_group
+                'isShown': self._show_group
             }
-            self.append_to_console_buffer(console_out)
+            self._append_to_console_buffer(console_out)
         elif line.startswith('__SH__CMD__START__'):
-            self.current_cmd_info = line_split[1]
+            self._current_cmd_info = line_split[1]
             current_cmd_name = '|'.join(line_split[2:])
-            self.current_cmd_info = json.loads(self.current_cmd_info)
-            parent_id = self.current_group_info.get('id') if \
-                self.current_group_info else None
+            self._current_cmd_info = json.loads(self._current_cmd_info)
+            parent_id = self._current_group_info.get('id') if \
+                self._current_group_info else None
             console_out = {
-                'consoleId': self.current_cmd_info.get('id'),
+                'consoleId': self._current_cmd_info.get('id'),
                 'parentConsoleId': parent_id,
                 'type': 'cmd',
                 'message': current_cmd_name,
                 'timestamp': timestamp,
             }
             if parent_id:
-                self.append_to_console_buffer(console_out)
+                self._append_to_console_buffer(console_out)
         elif line.startswith('__SH__CMD__END__'):
             current_cmd_end_info = line_split[1]
             current_cmd_end_name = '|'.join(line_split[2:])
             current_cmd_end_info = json.loads(current_cmd_end_info)
-            parent_id = self.current_group_info.get('id') if \
-                self.current_group_info else None
-            is_success = False
+            parent_id = self._current_group_info.get('id') if \
+                self._current_group_info else None
+            is_cmd_success = False
             if current_cmd_end_info.get('exitcode') == '0':
-                is_success = True
+                is_cmd_success = True
             console_out = {
-                'consoleId': self.current_cmd_info.get('id'),
+                'consoleId': self._current_cmd_info.get('id'),
                 'parentConsoleId': parent_id,
                 'type': 'cmd',
                 'message': current_cmd_end_name,
                 'timestamp': timestamp,
                 'timestampEndedAt': timestamp,
-                'isSuccess': is_success,
-                'isShown': self.show_group
+                'isSuccess': is_cmd_success,
+                'isShown': self._show_group
             }
             if parent_id:
-                self.append_to_console_buffer(console_out)
+                self._append_to_console_buffer(console_out)
         elif line.startswith('__SH__GROUP__END__'):
             current_grp_end_info = line_split[1]
             current_grp_end_name = '|'.join(line_split[2:])
             current_grp_end_info = json.loads(current_grp_end_info)
-            is_success = False
+            is_cmd_success = False
             if current_grp_end_info.get('exitcode') == '0':
-                is_success = True
+                is_cmd_success = True
             console_out = {
-                'consoleId': self.current_group_info.get('id'),
+                'consoleId': self._current_group_info.get('id'),
                 'parentConsoleId': 'root',
                 'type': 'grp',
                 'message': current_grp_end_name,
                 'timestamp': timestamp,
                 'timestampEndedAt': timestamp,
-                'isSuccess': is_success,
-                'isShown': self.show_group
+                'isSuccess': is_cmd_success,
+                'isShown': self._show_group
             }
-            self.append_to_console_buffer(console_out)
+            self._append_to_console_buffer(console_out)
         elif line.startswith('__SH__SCRIPT_END_SUCCESS__'):
-            return True
+            is_script_success = True
+            is_complete = True
         elif line.startswith('__SH__SCRIPT_END_FAILURE__'):
-            return False
+            is_script_success = False
+            is_complete = True
         else:
-            parent_id = self.current_cmd_info.get('id') if \
-                self.current_cmd_info else None
+            parent_id = self._current_cmd_info.get('id') if \
+                self._current_cmd_info else None
             console_out = {
                 'consoleId': str(uuid.uuid4()),
                 'parentConsoleId': parent_id,
@@ -162,44 +186,55 @@ class Executor():
                 'timestamp': timestamp,
             }
             if parent_id:
-                self.append_to_console_buffer(console_out)
+                self._append_to_console_buffer(console_out)
 
-        return None
+        return is_script_success, is_complete
 
-    def append_to_console_buffer(self, console_out):
-        with self.console_buffer_lock:
-            self.console_buffer.append(console_out)
+    def _append_to_console_buffer(self, console_out):
+        """
+        Pushes a console line to buffer after taking over lock
+        """
+        with self._console_buffer_lock:
+            self._console_buffer.append(console_out)
 
-        if len(self.console_buffer) > self.config['CONSOLE_BUFFER_LENGTH']:
-            self.flush_console_buffer()
+        if len(self._console_buffer) > self._config['CONSOLE_BUFFER_LENGTH']:
+            self._flush_console_buffer()
 
-    def set_console_flush_timer(self):
-        if not self.is_executing:
+    def _set_console_flush_timer(self):
+        """
+        Calls _flush_console_buffer to flush console buffers in constant
+        intervals and stops when the script is finished execution
+        """
+        if not self._is_executing:
             return
 
-        self.flush_console_buffer()
+        self._flush_console_buffer()
         console_flush_timer = threading.Timer(
-            self.config['CONSOLE_FLUSH_INTERVAL_SECONDS'],
-            self.set_console_flush_timer
+            self._config['CONSOLE_FLUSH_INTERVAL_SECONDS'],
+            self._set_console_flush_timer
         )
         console_flush_timer.start()
 
-    def flush_console_buffer(self):
-        if len(self.console_buffer) == 0:
-            return
-        else:
-            with self.console_buffer_lock:
-                for console in self.console_buffer:
-            		req_body = {
-                        'buildJobId': self.config['BUILD_JOB_ID'],
-                        'buildJobConsoles': self.console_buffer
-            		}
+    def _flush_console_buffer(self):
+        """
+        Flushes console buffers after taking over lock
+        """
+        if self._console_buffer:
+            with self._console_buffer_lock:
+                req_body = {
+                    'buildJobId': self._config['BUILD_JOB_ID'],
+                    'buildJobConsoles': self._console_buffer
+                }
 
-            self.shippable_adapter.post_build_job_consoles(
-                self.config['BUILD_JOB_ID'], req_body)
+            self._shippable_adapter.post_build_job_consoles(req_body)
 
-            del self.console_buffer
-            self.console_buffer = []
+            del self._console_buffer
+            self._console_buffer = []
 
-    def get_timestamp(self):
+    @staticmethod
+    def _get_timestamp():
+        """
+        Helper method to return timestamp in a format which is acceptable
+        for consoles
+        """
         return int(time.time() * 1000000)
