@@ -1,45 +1,54 @@
 """
 Executor executes a script, parses consoles and posts console logs
 """
+
 import json
 import subprocess
 import threading
 import time
+import traceback
 import uuid
 import os
-from config import Config
 from shippable_adapter import ShippableAdapter
 
 class Executor(object):
     """
     Sets up config for the job, defaults for exit code and consoles
     """
-    def __init__(self, script, job_envs_path):
-        #
+    def __init__(self, config):
+        # -------
         # Private
-        #
-        self._script = script
-        self._config = Config(job_envs_path)
-
-        self._shippable_adapter = ShippableAdapter(
-            self._config['SHIPPABLE_API_URL'],
-            self._config['BUILDER_API_TOKEN']
-        )
-
+        # -------
+        self._config = config
+        self._shippable_adapter = ShippableAdapter(config)
         self._is_executing = False
 
         # Consoles
+        # --------
         self._console_buffer = []
         self._console_buffer_lock = threading.Lock()
+
         # Console state
         self._current_group_info = None
         self._current_group_name = None
         self._current_cmd_info = None
         self._show_group = None
 
-        #
+        # Errors
+        self._error_grp = {
+            'consoleId': str(uuid.uuid4()),
+            'parentConsoleId': 'root',
+            'type': 'grp',
+            'message': 'Error',
+            'timestamp': Executor._get_timestamp(),
+            'isSuccess': False
+        }
+        self._error_buffer = [self._error_grp]
+        self._has_errors = False
+
+        # ------
         # Public
-        #
+        # ------
         self.exit_code = 0
 
     def execute(self):
@@ -58,6 +67,8 @@ class Executor(object):
         console_flush_timer.start()
         script_runner_thread.join()
         self._is_executing = False
+        if self._has_errors:
+            self._flush_error_buffer()
         self._flush_console_buffer()
 
     def _script_runner(self):
@@ -70,22 +81,27 @@ class Executor(object):
         env = dict(os.environ)
         env.pop('LD_LIBRARY_PATH', None)
 
-        proc = subprocess.Popen(
-            self._script,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            cwd=self._config['BUILD_DIR'],
-            env=env
-        )
+        try:
+            proc = subprocess.Popen(
+                self._config['SCRIPT_PATH'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                cwd=self._config['BUILD_DIR'],
+                env=env
+            )
 
-        for line in iter(proc.stdout.readline, ''):
-            is_script_success, is_complete = self._handle_console_line(line)
+            for line in iter(proc.stdout.readline, ''):
+                is_script_success, is_complete = self._handle_console_line(line)
 
-            if not is_script_success:
-                self.exit_code = 1
+                if not is_script_success:
+                    self.exit_code = 1
 
-            if is_complete:
-                break
+                if is_complete:
+                    break
+        except Exception as ex:
+            trace = traceback.format_exc()
+            error = '{0}: {1}'.format(str(ex), trace)
+            self._append_to_error_buffer(error)
 
         proc.kill()
 
@@ -187,6 +203,8 @@ class Executor(object):
             }
             if parent_id:
                 self._append_to_console_buffer(console_out)
+            else:
+                self._append_to_error_buffer(line)
 
         return is_script_success, is_complete
 
@@ -203,7 +221,7 @@ class Executor(object):
     def _set_console_flush_timer(self):
         """
         Calls _flush_console_buffer to flush console buffers in constant
-        intervals and stops when the script is finished execution
+        intervals and stops when the script has finished execution
         """
         if not self._is_executing:
             return
@@ -217,19 +235,71 @@ class Executor(object):
 
     def _flush_console_buffer(self):
         """
-        Flushes console buffers after taking over lock
+        Flushes console buffer after taking over lock
         """
         if self._console_buffer:
             with self._console_buffer_lock:
-                req_body = {
-                    'buildJobId': self._config['BUILD_JOB_ID'],
-                    'buildJobConsoles': self._console_buffer
-                }
+                # If there is an exception in stringifying the data, test
+                # each line to ensure only the sanitized ones are sent.
+                # Errors are pushed to the error buffer. Testing on failure
+                # will ensure that we don't test unnecessarily.
+                try:
+                    req_body = {
+                        'buildJobId': self._config['BUILD_JOB_ID'],
+                        'buildJobConsoles': self._console_buffer
+                    }
+                    json.dumps(req_body)
+                    data = json.dumps(req_body)
+                except Exception as ex:
+                    req_body = {
+                        'buildJobId': self._config['BUILD_JOB_ID'],
+                        'buildJobConsoles': []
+                    }
 
-            self._shippable_adapter.post_build_job_consoles(req_body)
+                    for console in self._console_buffer:
+                        try:
+                            json.dumps(console)
+                            req_body['buildJobConsoles'].append(console)
+                        except Exception as ex:
+                            trace = traceback.format_exc()
+                            error = '{0}: {1}'.format(str(ex), trace)
+                            self._append_to_error_buffer(error)
+                    data = json.dumps(req_body)
 
-            del self._console_buffer
-            self._console_buffer = []
+                self._shippable_adapter.post_build_job_consoles(data)
+                del self._console_buffer
+                self._console_buffer = []
+
+    def _append_to_error_buffer(self, error):
+        """
+        Appends an error into errors buffer after ensuring it is not empty
+        """
+        if not error.strip():
+            return
+
+        self._has_errors = True
+        error_msg = {
+            'consoleId': str(uuid.uuid4()),
+            'parentConsoleId': self._error_grp['consoleId'],
+            'type': 'msg',
+            'message': error,
+            'timestamp': Executor._get_timestamp(),
+            'isSuccess': False
+        }
+        self._error_buffer.append(error_msg)
+
+    def _flush_error_buffer(self):
+        """
+        Flushes error buffer
+        """
+        req_body = {
+            'buildJobId': self._config['BUILD_JOB_ID'],
+            'buildJobConsoles': self._error_buffer
+        }
+        data = json.dumps(req_body)
+        self._shippable_adapter.post_build_job_consoles(data)
+        del self._error_buffer
+        self._error_buffer = []
 
     @staticmethod
     def _get_timestamp():
