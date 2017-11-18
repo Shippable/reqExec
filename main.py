@@ -1,7 +1,9 @@
 """
 Entrypoint to reqExec
 """
+
 import sys
+from config import Config
 from executor import Executor
 
 def main():
@@ -19,7 +21,8 @@ def main():
         script_path = sys.argv[1]
         job_envs_path = sys.argv[2]
 
-    ex = Executor(script_path, job_envs_path)
+    config = Config(script_path, job_envs_path)
+    ex = Executor(config)
     ex.execute()
     sys.exit(ex.exit_code)
 

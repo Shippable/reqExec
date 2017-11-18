@@ -1,6 +1,9 @@
 [MASTER]
 min-public-methods=1
 
+[MESSAGES CONTROL]
+disable=broad-except,no-member
+
 [DESIGN]
 max-branches=15
 max-statements=60
