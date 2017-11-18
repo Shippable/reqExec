@@ -13,11 +13,9 @@ pip install -r ./requirements/dev.txt
 
 ## Packaging binaries
 
-Use `make package_<arch>_<os>` where `<arch>` is the architecture and `<os>` is the operating system you are building for.
+Use `./package/<architecture>/<os>/package.sh` to package binaries. The following platforms are currently supported:
 
-The following are supported:
-
-| Architecture  | OS     |
-| ------------- |:------:|
-| x86_64        | Ubuntu |
-| aarch64       | Ubuntu |
+| architecture  | os           |
+| ------------- |:------------:|
+| x86_64        | Ubuntu_16.04 |
+| aarch64       | Ubuntu_16.04 |
