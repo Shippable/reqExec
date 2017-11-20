@@ -13,9 +13,11 @@ pip install -r ./requirements/dev.txt
 
 ## Packaging binaries
 
-Use `./package/<architecture>/<os>/package.sh` to package binaries. The following platforms are currently supported:
+Use `./build.sh <DRYDOCK_ORG> <ARCHITECTURE> <OS>` to package binaries.
 
-| architecture  | os           |
-| ------------- |:------------:|
-| x86_64        | Ubuntu_16.04 |
-| aarch64       | Ubuntu_16.04 |
+The following platforms are currently supported:
+
+| DRYDOCK_ORG    | ARCHITECTURE  | OS           |
+| -----------    | ------------- |:------------:|
+| drydock        | x86_64        | Ubuntu_16.04 |
+| drydockaarch64 | aarch64       | Ubuntu_16.04 |
