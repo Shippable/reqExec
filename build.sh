@@ -1,16 +1,11 @@
 #!/bin/bash -e
 
-export DRYDOCK_ORG="$1"
-export ARCHITECTURE="$2"
-export OS="$3"
+export ARCHITECTURE="$1"
+export OS="$2"
+export DRYDOCK_ORG="$3"
 export TAG="master"
 
 check_input() {
-  if [ -z "$DRYDOCK_ORG" ]; then
-    echo "Missing input parameter DRYDOCK_ORG"
-    exit 1
-  fi
-
   if [ -z "$ARCHITECTURE" ]; then
     echo "Missing input parameter ARCHITECTURE"
     exit 1
@@ -23,7 +18,13 @@ check_input() {
 }
 
 build_reqExec() {
-  docker run -v $(pwd):/root/reqExec $DRYDOCK_ORG/microbase:$TAG bash -c "pushd /root/reqExec && /root/reqExec/package/$ARCHITECTURE/$OS/package.sh"
+  if [ -z "$DRYDOCK_ORG" ]; then
+    echo "Building on host..."
+    ./package/$ARCHITECTURE/$OS/package.sh
+  else
+    echo "Building inside $DRYDOCK_ORG/microbase:$TAG"
+    docker run -v $(pwd):/root/reqExec $DRYDOCK_ORG/microbase:$TAG bash -c "pushd /root/reqExec && /root/reqExec/package/$ARCHITECTURE/$OS/package.sh"
+  fi
 }
 
 main() {
