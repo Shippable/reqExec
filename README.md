@@ -1,5 +1,4 @@
-# reqExec
-[![Run Status](https://api.shippable.com/projects/59e069c1f7ca690700e9274f/badge?branch=master)](https://app.shippable.com/github/Shippable/reqExec)
+# reqExec [![Run Status](https://api.shippable.com/projects/59e069c1f7ca690700e9274f/badge?branch=master)](https://app.shippable.com/github/Shippable/reqExec)
 
 ## Development
 
@@ -20,10 +19,10 @@ pip install -r ./requirements/dev.txt
 
 ### Packaging binaries
 
-Use `./build.sh <ARCHITECTURE> <OS> [DRYDOCK_ORG]` to package binaries. `DRYDOCK_ORG` is optional. If it's specified, the packaging happens inside `DRYDOCK_ORG/microbase:master` container.
+Use `./package/<ARCHITECTURE>/<OS>/package.<EXT>` to package binaries. The following are supported:
 
-| ARCHITECTURE   | OS            | DRYDOCK_ORG    |
-| ------------   | --            | -----------    |
-| x86_64         | Ubuntu_16.04  | drydock        |
-| x86_64         | macOS_10.12   |                |
-| aarch64        | Ubuntu_16.04  | drydockaarch64 |
+| ARCHITECTURE   | OS            | EXT  |
+| ------------   | --            | ---  |
+| x86_64         | Ubuntu_16.04  | sh   |
+| x86_64         | macOS_10.12   | sh   |
+| aarch64        | Ubuntu_16.04  | sh   |
