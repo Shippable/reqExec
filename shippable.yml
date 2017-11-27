@@ -3,3 +3,6 @@ build:
   ci:
     - pip install -r ./requirements/dev.txt
     - make lint
+    # Check package and any other shell scripts
+    - apt-get install -y shellcheck
+    - shellcheck -s bash $(find ./ -name "*.sh")
