@@ -13,7 +13,10 @@ function packageBinaries
   $bin_directory = ".\dist\main"
   New-Item -ItemType Directory -Force -Path $bin_directory
   Move-Item -force .\dist\main.exe $bin_directory
-  tar -zcvf dist reqExec.tar.gz
+  $tmpReqExecPath = "$Env:USERPROFILE/shippable/tmp/reqExec"
+  New-Item -ItemType Directory -Force -Path $tmpReqExecPath
+  Copy-Item -Force -Recurse dist $tmpReqExecPath/
+  tar -zcvf reqExec.tar.gz -C $tmpReqExecPath .
 }
 
 echo "building reqExec binaries"
