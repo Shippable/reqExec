@@ -7,6 +7,7 @@
 1. Python 2.7.x
 2. pip
 3. virtualenv
+4. tar (windows)
 
 ### Virtualenv
 
@@ -26,3 +27,5 @@ Use `./package/<ARCHITECTURE>/<OS>/package.<EXT>` to package binaries. The follo
 | x86_64         | Ubuntu_16.04  | sh   |
 | x86_64         | macOS_10.12   | sh   |
 | aarch64        | Ubuntu_16.04  | sh   |
+| x86_64         | WindowsServer_2016  | ps1   |
+
