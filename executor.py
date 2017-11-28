@@ -49,7 +49,7 @@ class Executor(object):
         # ------
         # Public
         # ------
-        self.exit_code = 0
+        self.exit_code = 1
 
     def execute(self):
         """
@@ -93,8 +93,8 @@ class Executor(object):
             for line in iter(proc.stdout.readline, ''):
                 is_script_success, is_complete = self._handle_console_line(line)
 
-                if not is_script_success:
-                    self.exit_code = 1
+                if is_script_success:
+                    self.exit_code = 0
 
                 if is_complete:
                     break
@@ -102,8 +102,8 @@ class Executor(object):
             trace = traceback.format_exc()
             error = '{0}: {1}'.format(str(ex), trace)
             self._append_to_error_buffer(error)
-
-        proc.kill()
+        finally:
+            proc.kill()
 
     def _handle_console_line(self, line):
         """
@@ -111,7 +111,7 @@ class Executor(object):
         This also returns whether the console line is successful and the
         script is complete
         """
-        is_script_success = True
+        is_script_success = False
         is_complete = False
         timestamp = Executor._get_timestamp()
         line_split = line.split('|')
