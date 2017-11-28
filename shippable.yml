@@ -2,7 +2,7 @@ language: python
 build:
   ci:
     - pip install -r ./requirements/dev.txt
-    - make lint
+    - pylint *.py
     # Check package and any other shell scripts
     - apt-get install -y shellcheck
     - shellcheck -s bash $(find ./ -name "*.sh")
