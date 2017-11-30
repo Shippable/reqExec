@@ -89,7 +89,13 @@ class Executor(object):
                 cwd=self._config['BUILD_DIR'],
                 env=env
             )
+        except Exception as ex:
+            trace = traceback.format_exc()
+            error = '{0}: {1}'.format(str(ex), trace)
+            self._append_to_error_buffer(error)
+            return
 
+        try:
             for line in iter(proc.stdout.readline, ''):
                 is_script_success, is_complete = self._handle_console_line(line)
 
@@ -102,8 +108,8 @@ class Executor(object):
             trace = traceback.format_exc()
             error = '{0}: {1}'.format(str(ex), trace)
             self._append_to_error_buffer(error)
-        finally:
-            proc.kill()
+
+        proc.kill()
 
     def _handle_console_line(self, line):
         """
