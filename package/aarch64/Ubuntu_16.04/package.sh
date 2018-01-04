@@ -3,6 +3,8 @@
 readonly VE_LOCATION=/tmp/reqExec_pkg_ve
 
 init_ve() {
+  export LC_ALL=C
+  pip install virtualenv
   rm -rf $VE_LOCATION
   virtualenv -p /usr/bin/python $VE_LOCATION
   # shellcheck disable=SC1090
