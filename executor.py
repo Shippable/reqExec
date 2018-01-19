@@ -81,9 +81,14 @@ class Executor(object):
         env = dict(os.environ)
         env.pop('LD_LIBRARY_PATH', None)
 
+        cmd = self._config['SCRIPT_PATH']
+
+        if self._config['REQEXEC_SHELL']:
+            cmd = [self._config['REQEXEC_SHELL'], self._config['SCRIPT_PATH']]
+
         try:
             proc = subprocess.Popen(
-                self._config['SCRIPT_PATH'],
+                cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 cwd=self._config['BUILD_DIR'],
