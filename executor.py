@@ -83,7 +83,7 @@ class Executor(object):
 
         cmd = self._config['SCRIPT_PATH']
 
-        if self._config['REQEXEC_SHELL']:
+        if self._config.get('REQEXEC_SHELL'):
             cmd = [self._config['REQEXEC_SHELL'], self._config['SCRIPT_PATH']]
 
         try:
