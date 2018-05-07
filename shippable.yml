@@ -23,7 +23,9 @@ jobs:
     triggerMode: parallel
     dependencyMode: strict
     steps:
+      - IN: reqExec_runCI
       - IN: reqExec_repo
+        switch: off
       - IN: shipit_bits_cli
         switch: off
       - TASK:
