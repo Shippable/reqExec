@@ -18,8 +18,6 @@ resources:
 jobs:
   - name: u16_reqExec_x8664_pack
     type: runSh
-    runtime:
-      nodePool: x86_u1604_cus_01
     triggerMode: parallel
     dependencyMode: strict
     steps:
