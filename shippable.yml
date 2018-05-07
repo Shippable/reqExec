@@ -36,14 +36,14 @@ jobs:
                 - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
-                - BINARY_TAR: "reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
-                - PACK_SCRIPT: "./package/$ARCHITECTURE/$OS/package.sh"
-                - S3_BUCKET_BINARY_DIR: "$ARTIFACTS_BUCKET/$REL_VER/"
               imageName: drydock/u16pytall
               imageTag: v6.2.4
           script:
             - pushd $(shipctl get_resource_state "reqExec_repo")
             - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
+            - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
             - $PACK_SCRIPT
             - cp -r dist $BINARY_DIR
             - tar -zcvf "$BINARY_TAR" -C "$BINARY_DIR" .
