@@ -24,7 +24,7 @@ jobs:
       - IN: reqExec_runCI
       - IN: reqExec_repo
         switch: off
-      - IN: shipit_bits_cli
+      - IN: shipit_bits_access_cli
         switch: off
       - TASK:
           name: u16_reqexec_pack
