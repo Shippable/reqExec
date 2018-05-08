@@ -110,6 +110,8 @@ jobs:
                 - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
+              imageName: drydock/c7pytall
+              imageTag: v6.4.4
           script:
             - pushd $(shipctl get_resource_state "reqExec_repo")
             - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
