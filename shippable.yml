@@ -51,3 +51,39 @@ jobs:
     on_success:
       script:
         - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$ARTIFACTS_BUCKET" "S3_FILENAME=$REQ_EXEC_BINARY_TAR"
+
+  - name: u14_reqExec_x8664_pack
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: reqExec_runCI
+      - IN: reqExec_repo
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: u14_reqexec_pack
+          runtime:
+            options:
+              env:
+                - ARCHITECTURE: "x86_64"
+                - OS: "Ubuntu_14.04"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+                - REL_VER: "master"
+                - BINARY_DIR: "/tmp/reqExec"
+              imageName: drydock/u16pytall
+              imageTag: v6.2.4
+          script:
+            - pushd $(shipctl get_resource_state "reqExec_repo")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
+            - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
+            - $PACK_SCRIPT
+            - cp -r dist $BINARY_DIR
+            - tar -zcvf "$BINARY_TAR" -C "$BINARY_DIR" .
+            - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$ARTIFACTS_BUCKET" "S3_FILENAME=$REQ_EXEC_BINARY_TAR"
