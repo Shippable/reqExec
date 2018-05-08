@@ -233,7 +233,7 @@ jobs:
           script:
             - $ErrorActionPreference = "Stop"
             - $REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
-            - $REQ_EXEC_PATH = $(shipctl get_resource_state $RES_REPO)
+            - $REQ_EXEC_PATH = $(shipctl get_resource_state "reqExec_repo")
             - $REQ_EXEC_PACKAGE_PATH = [System.IO.Path]::Combine($REQ_EXEC_PATH, "package", $ARCHITECTURE, $OS)
             - $REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
             - $REQ_EXEC_BINARY_ZIP = "reqExec-$REL_VER-$ARCHITECTURE-$OS.zip"
