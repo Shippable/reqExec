@@ -232,7 +232,7 @@ jobs:
                 - BINARY_DIR: "/tmp/reqExec"
           script:
             - $ErrorActionPreference = "Stop"
-            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - $REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
             - $REQ_EXEC_PATH = $(shipctl get_resource_state $RES_REPO)
             - $REQ_EXEC_PACKAGE_PATH = [System.IO.Path]::Combine($REQ_EXEC_PATH, "package", $ARCHITECTURE, $OS)
             - $REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
