@@ -241,7 +241,7 @@ jobs:
             - if (Test-Path $REQ_EXEC_BINARY_DIR) {Remove-Item -Recurse -Force $REQ_EXEC_BINARY_DIR}
             - New-Item -ItemType directory $REQ_EXEC_BINARY_DIR
             - pushd $REQ_EXEC_PATH
-            - & $REQ_EXEC_PACKAGE_PATH\package.ps1
+            - invoke-command -filepath $REQ_EXEC_PACKAGE_PATH\package.ps1
             - $bin_directory = ".\dist\main" # main.exe should be inside dist/main/ instead of dist/
             - New-Item -ItemType Directory -Force -Path $bin_directory
             - Move-Item -Force .\dist\main.exe $bin_directory
