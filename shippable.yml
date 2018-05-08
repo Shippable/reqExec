@@ -54,6 +54,8 @@ jobs:
 
   - name: u14_reqExec_x8664_pack
     type: runSh
+    runtime:
+      nodePool: x86_u1404_dyn_large_01
     triggerMode: parallel
     dependencyMode: strict
     steps:
@@ -72,7 +74,7 @@ jobs:
                 - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
-              imageName: drydock/u16pytall
+              imageName: drydock/u14pytall
               imageTag: v6.2.4
           script:
             - pushd $(shipctl get_resource_state "reqExec_repo")
