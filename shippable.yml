@@ -81,7 +81,7 @@ jobs:
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
             - $PACK_SCRIPT
-            - cp -r dist $BINARY_DIR
+            - mkdir -p $BINARY_DIR && cp -r dist $BINARY_DIR
             - tar -zcvf "$BINARY_TAR" -C "$BINARY_DIR" .
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
@@ -119,7 +119,7 @@ jobs:
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
             - $PACK_SCRIPT
-            - cp -r dist $BINARY_DIR
+            - mkdir -p $BINARY_DIR && cp -r dist $BINARY_DIR
             - tar -zcvf "$BINARY_TAR" -C "$BINARY_DIR" .
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
@@ -156,7 +156,7 @@ jobs:
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
             - $PACK_SCRIPT
-            - cp -r dist $BINARY_DIR
+            - mkdir -p $BINARY_DIR && cp -r dist $BINARY_DIR
             - tar -zcvf "$BINARY_TAR" -C "$BINARY_DIR" .
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
@@ -201,7 +201,7 @@ jobs:
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
             - $PACK_SCRIPT
-            - cp -r dist $BINARY_DIR
+            - mkdir -p $BINARY_DIR && cp -r dist $BINARY_DIR
             - tar -zcvf "$BINARY_TAR" -C "$BINARY_DIR" .
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
