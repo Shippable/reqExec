@@ -238,6 +238,8 @@ jobs:
             - $REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
             - $REQ_EXEC_BINARY_ZIP = "reqExec-$REL_VER-$ARCHITECTURE-$OS.zip"
             - $S3_BUCKET_BINARY_DIR = "$ARTIFACTS_BUCKET/$REL_VER/"
+            - Write-Output "REQ_EXEC_BINARY_DIR is $REQ_EXEC_BINARY_DIR" # For debug
+            - Write-Output "env:REQ_EXEC_BINARY_DIR is $env:REQ_EXEC_BINARY_DIR" # For debug
             - if (Test-Path $REQ_EXEC_BINARY_DIR) {Remove-Item -Recurse -Force $REQ_EXEC_BINARY_DIR}
             - New-Item -ItemType directory $REQ_EXEC_BINARY_DIR
             - pushd $REQ_EXEC_PATH
