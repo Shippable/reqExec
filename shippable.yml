@@ -238,11 +238,10 @@ jobs:
             - $env:REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
             - $env:REQ_EXEC_BINARY_ZIP = "reqExec-${env:REL_VER}-${env:ARCHITECTURE}-${env:OS}.zip"
             - $S3_BUCKET_BINARY_DIR = "${env:ARTIFACTS_BUCKET}/${env:REL_VER}/"
-            - Write-Output "env:REQ_EXEC_BINARY_DIR is $env:REQ_EXEC_BINARY_DIR" # For debug
             - if (Test-Path $env:REQ_EXEC_BINARY_DIR) {Remove-Item -Recurse -Force $env:REQ_EXEC_BINARY_DIR}
             - New-Item -ItemType directory $env:REQ_EXEC_BINARY_DIR
             - pushd $env:REQ_EXEC_PATH
-            - invoke-command -filepath $env:REQ_EXEC_PACKAGE_PATH\package.ps1
+            - & $env:REQ_EXEC_PACKAGE_PATH\package.ps1
             - $bin_directory = ".\dist\main" # main.exe should be inside dist/main/ instead of dist/
             - New-Item -ItemType Directory -Force -Path $bin_directory
             - Move-Item -Force .\dist\main.exe $bin_directory
