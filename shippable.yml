@@ -243,9 +243,9 @@ jobs:
             - pushd $env:REQ_EXEC_PATH
             - >
               & $env:REQ_EXEC_PACKAGE_PATH\package.ps1
-            - $bin_directory = ".\dist\main" # main.exe should be inside dist/main/ instead of dist/
-            - New-Item -ItemType Directory -Force -Path $bin_directory
-            - Move-Item -Force .\dist\main.exe $bin_directory
+            - $env:bin_directory = ".\dist\main" # main.exe should be inside dist/main/ instead of dist/
+            - New-Item -ItemType Directory -Force -Path $env:bin_directory
+            - Move-Item -Force .\dist\main.exe $env:bin_directory
             - Copy-Item dist -Destination $env:REQ_EXEC_BINARY_DIR -Recurse
             - Compress-Archive -Force -Path "$env:REQ_EXEC_BINARY_DIR\*" -DestinationPath $env:REQ_EXEC_BINARY_ZIP
             - aws s3 cp --acl public-read "$env:REQ_EXEC_BINARY_ZIP" "$env:S3_BUCKET_BINARY_DIR"
