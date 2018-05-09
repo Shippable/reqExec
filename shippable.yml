@@ -232,24 +232,23 @@ jobs:
                 - BINARY_DIR: "/tmp/reqExec"
           script:
             - $ErrorActionPreference = "Stop"
-            - $REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
-            - $REQ_EXEC_PATH = $(shipctl get_resource_state "reqExec_repo")
-            - $REQ_EXEC_PACKAGE_PATH = [System.IO.Path]::Combine($REQ_EXEC_PATH, "package", $ARCHITECTURE, $OS)
-            - $REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
-            - $REQ_EXEC_BINARY_ZIP = "reqExec-$REL_VER-$ARCHITECTURE-$OS.zip"
-            - $S3_BUCKET_BINARY_DIR = "$ARTIFACTS_BUCKET/$REL_VER/"
-            - Write-Output "REQ_EXEC_BINARY_DIR is $REQ_EXEC_BINARY_DIR" # For debug
+            - $env:REPO_COMMIT = $(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - $env:REQ_EXEC_PATH = $(shipctl get_resource_state "reqExec_repo")
+            - $env:REQ_EXEC_PACKAGE_PATH = [System.IO.Path]::Combine($env:REQ_EXEC_PATH, "package", $env:ARCHITECTURE, $env:OS)
+            - $env:REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
+            - $env:REQ_EXEC_BINARY_ZIP = "reqExec-${env:REL_VER}-${env:ARCHITECTURE}-${env:OS}.zip"
+            - $S3_BUCKET_BINARY_DIR = "${env:ARTIFACTS_BUCKET}/${env:REL_VER}/"
             - Write-Output "env:REQ_EXEC_BINARY_DIR is $env:REQ_EXEC_BINARY_DIR" # For debug
-            - if (Test-Path $REQ_EXEC_BINARY_DIR) {Remove-Item -Recurse -Force $REQ_EXEC_BINARY_DIR}
-            - New-Item -ItemType directory $REQ_EXEC_BINARY_DIR
-            - pushd $REQ_EXEC_PATH
-            - invoke-command -filepath $REQ_EXEC_PACKAGE_PATH\package.ps1
+            - if (Test-Path $env:REQ_EXEC_BINARY_DIR) {Remove-Item -Recurse -Force $env:REQ_EXEC_BINARY_DIR}
+            - New-Item -ItemType directory $env:REQ_EXEC_BINARY_DIR
+            - pushd $env:REQ_EXEC_PATH
+            - invoke-command -filepath $env:REQ_EXEC_PACKAGE_PATH\package.ps1
             - $bin_directory = ".\dist\main" # main.exe should be inside dist/main/ instead of dist/
             - New-Item -ItemType Directory -Force -Path $bin_directory
             - Move-Item -Force .\dist\main.exe $bin_directory
-            - Copy-Item dist -Destination $REQ_EXEC_BINARY_DIR -Recurse
-            - Compress-Archive -Force -Path "$REQ_EXEC_BINARY_DIR\*" -DestinationPath $REQ_EXEC_BINARY_ZIP
-            - aws s3 cp --acl public-read "$REQ_EXEC_BINARY_ZIP" "$S3_BUCKET_BINARY_DIR"
+            - Copy-Item dist -Destination $env:REQ_EXEC_BINARY_DIR -Recurse
+            - Compress-Archive -Force -Path "$env:REQ_EXEC_BINARY_DIR\*" -DestinationPath $env:REQ_EXEC_BINARY_ZIP
+            - aws s3 cp --acl public-read "$env:REQ_EXEC_BINARY_ZIP" "$env:S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$REQ_EXEC_BINARY_ZIP"
+        - shipctl put_resource_state_multi $env:JOB_NAME "versionName=$env:REPO_COMMIT" "commitSha=$env:REPO_COMMIT" "S3_BUCKET=$env:S3_BUCKET_BINARY_DIR" "S3_FILENAME=$env:REQ_EXEC_BINARY_ZIP"
