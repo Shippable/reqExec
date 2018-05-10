@@ -8,12 +8,12 @@ build:
     - shellcheck -s bash $(find ./ -name "*.sh")
 
 resources:
-#  - name: reqExec_sh_repo
-#    type: gitRepo
-#    integration: avinci_gh
-#    pointer:
-#      sourceName: shippable/reqExec
-#      branch: master
+  - name: reqExec_sh_repo
+    type: gitRepo
+    integration: avinci_gh
+    pointer:
+      sourceName: shippable/reqExec
+      branch: master
 
 jobs:
   - name: u16_reqExec_x8664_pack
@@ -22,7 +22,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-#      - IN: reqExec_sh_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -60,7 +60,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-#      - IN: reqExec_sh_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -96,7 +96,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-#      - IN: reqExec_sh_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -135,7 +135,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-#      - IN: reqExec_sh_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -175,7 +175,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-#      - IN: reqExec_sh_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -219,7 +219,7 @@ jobs:
       - IN: reqExec_runCI
       - IN: shipit_bits_access_cli
         switch: off
-#      - IN: reqExec_sh_repo
+      - IN: reqExec_sh_repo
       - TASK:
           name: w2k16_reqexec_pack
           runtime:
