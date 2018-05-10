@@ -50,7 +50,7 @@ jobs:
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR"
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR" "ARCHITECTURE=$RCHITECTURE" "OS=$OS"
 
   - name: u14_reqExec_x8664_pack
     type: runSh
@@ -86,7 +86,7 @@ jobs:
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR"
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR" "ARCHITECTURE=$RCHITECTURE" "OS=$OS"
 
   - name: c7_reqExec_x8664_pack
     type: runSh
@@ -124,7 +124,7 @@ jobs:
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR"
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR" "ARCHITECTURE=$RCHITECTURE" "OS=$OS"
 
   - name: macOS10_reqExec_x8664_pack
     type: runSh
@@ -161,8 +161,7 @@ jobs:
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR"
-
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR" "ARCHITECTURE=$RCHITECTURE" "OS=$OS"
 
   - name: u16_reqExec_aarch64_pack
     type: runSh
@@ -206,7 +205,7 @@ jobs:
             - aws s3 cp --acl public-read "$BINARY_TAR" "$S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "commitSha=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR"
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REPO_COMMIT" "FILE_REPO_COMMIT_SHA=$REPO_COMMIT" "S3_BUCKET=$S3_BUCKET_BINARY_DIR" "S3_FILENAME=$BINARY_TAR" "ARCHITECTURE=$RCHITECTURE" "OS=$OS"
 
   - name: w2k16_reqExec_x8664_pack
     type: runSh
@@ -232,7 +231,7 @@ jobs:
                 - BINARY_DIR: "/tmp/reqExec"
           script:
             - $ErrorActionPreference = "Stop"
-            - $env:REPO_COMMIT = $(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
+            - $env:REPO_COMMIT = $(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.FILE_REPO_COMMIT_SHA")
             - $env:REQ_EXEC_PATH = $(shipctl get_resource_state "reqExec_sh_repo")
             - $env:REQ_EXEC_PACKAGE_PATH = [System.IO.Path]::Combine($env:REQ_EXEC_PATH, "package", $env:ARCHITECTURE, $env:OS)
             - $env:REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
@@ -251,4 +250,202 @@ jobs:
             - aws s3 cp --acl public-read "$env:REQ_EXEC_BINARY_ZIP" "$env:S3_BUCKET_BINARY_DIR"
     on_success:
       script:
-        - shipctl put_resource_state_multi $env:JOB_NAME "versionName=$env:REPO_COMMIT" "commitSha=$env:REPO_COMMIT" "S3_BUCKET=$env:S3_BUCKET_BINARY_DIR" "S3_FILENAME=$env:REQ_EXEC_BINARY_ZIP"
+        - shipctl put_resource_state_multi $env:JOB_NAME "versionName=$env:REPO_COMMIT" "FILE_REPO_COMMIT_SHA=$env:REPO_COMMIT" "S3_BUCKET=$env:S3_BUCKET_BINARY_DIR" "S3_FILENAME=$env:REQ_EXEC_BINARY_ZIP" "ARCHITECTURE=$env:ARCHITECTURE" "OS=$env:OS"
+
+  - name: u16_reqExec_x8664_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: u16_reqExec_x8664_pack
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: u16_reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_FILE: "u16_reqExec_x8664_pack"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               FILE_NAME=$(shipctl get_resource_version_key "$RES_FILE" "S3_FILENAME")
+               FILE_BUCKET=$(shipctl get_resource_version_key "$RES_FILE" "S3_BUCKET")
+               OS=$(shipctl get_resource_version_key "$RES_FILE" "OS")
+               ARCHITECTURE=$(shipctl get_resource_version_key "$RES_FILE" "ARCHITECTURE")
+            - S3_BUCKET_FROM_PATH="$FILE_BUCKET""$FILE_NAME"
+            - S3_BUCKET_TO_PATH="$ARTIFACTS_BUCKET/$REL_VER/reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - aws s3 cp --acl public-read "$S3_BUCKET_FROM_PATH" "$S3_BUCKET_TO_PATH"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
+
+  - name: u14_reqExec_x8664_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: u14_reqExec_x8664_pack
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: u14_reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_FILE: "u14_reqExec_x8664_pack"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               FILE_NAME=$(shipctl get_resource_version_key "$RES_FILE" "S3_FILENAME")
+               FILE_BUCKET=$(shipctl get_resource_version_key "$RES_FILE" "S3_BUCKET")
+               OS=$(shipctl get_resource_version_key "$RES_FILE" "OS")
+               ARCHITECTURE=$(shipctl get_resource_version_key "$RES_FILE" "ARCHITECTURE")
+            - S3_BUCKET_FROM_PATH="$FILE_BUCKET""$FILE_NAME"
+            - S3_BUCKET_TO_PATH="$ARTIFACTS_BUCKET/$REL_VER/reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - aws s3 cp --acl public-read "$S3_BUCKET_FROM_PATH" "$S3_BUCKET_TO_PATH"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
+
+  - name: c7_reqExec_x8664_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: c7_reqExec_x8664_pack
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: c7_reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_FILE: "c7_reqExec_x8664_pack"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               FILE_NAME=$(shipctl get_resource_version_key "$RES_FILE" "S3_FILENAME")
+               FILE_BUCKET=$(shipctl get_resource_version_key "$RES_FILE" "S3_BUCKET")
+               OS=$(shipctl get_resource_version_key "$RES_FILE" "OS")
+               ARCHITECTURE=$(shipctl get_resource_version_key "$RES_FILE" "ARCHITECTURE")
+            - S3_BUCKET_FROM_PATH="$FILE_BUCKET""$FILE_NAME"
+            - S3_BUCKET_TO_PATH="$ARTIFACTS_BUCKET/$REL_VER/reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - aws s3 cp --acl public-read "$S3_BUCKET_FROM_PATH" "$S3_BUCKET_TO_PATH"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
+
+  - name: macOS10_reqExec_x8664_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: macOS10_reqExec_x8664_pack
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: macOS10_reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_FILE: "macOS10_reqExec_x8664_pack"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               FILE_NAME=$(shipctl get_resource_version_key "$RES_FILE" "S3_FILENAME")
+               FILE_BUCKET=$(shipctl get_resource_version_key "$RES_FILE" "S3_BUCKET")
+               OS=$(shipctl get_resource_version_key "$RES_FILE" "OS")
+               ARCHITECTURE=$(shipctl get_resource_version_key "$RES_FILE" "ARCHITECTURE")
+            - S3_BUCKET_FROM_PATH="$FILE_BUCKET""$FILE_NAME"
+            - S3_BUCKET_TO_PATH="$ARTIFACTS_BUCKET/$REL_VER/reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - aws s3 cp --acl public-read "$S3_BUCKET_FROM_PATH" "$S3_BUCKET_TO_PATH"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
+
+  - name: w2k16_reqExec_x8664_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: w2k16_reqExec_x8664_pack
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: w2k16_reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_FILE: "w2k16_reqExec_x8664_pack"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               FILE_NAME=$(shipctl get_resource_version_key "$RES_FILE" "S3_FILENAME")
+               FILE_BUCKET=$(shipctl get_resource_version_key "$RES_FILE" "S3_BUCKET")
+               OS=$(shipctl get_resource_version_key "$RES_FILE" "OS")
+               ARCHITECTURE=$(shipctl get_resource_version_key "$RES_FILE" "ARCHITECTURE")
+            - S3_BUCKET_FROM_PATH="$FILE_BUCKET""$FILE_NAME"
+            - S3_BUCKET_TO_PATH="$ARTIFACTS_BUCKET/$REL_VER/reqExec-$REL_VER-$ARCHITECTURE-$OS.zip"
+            - aws s3 cp --acl public-read "$S3_BUCKET_FROM_PATH" "$S3_BUCKET_TO_PATH"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
+
+  - name: u16_reqExec_aarch64_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: u16_reqExec_aarch64_pack
+        switch: off
+      - IN: shipit_bits_access_cli
+        switch: off
+      - TASK:
+          name: u16_reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_FILE: "u16_reqExec_aarch64_pack"
+                - ARTIFACTS_BUCKET: "s3://shippable-artifacts/reqExec"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - |
+               REPO_COMMIT=$(shipctl get_resource_version_key "$RES_FILE" "FILE_REPO_COMMIT_SHA")
+               FILE_NAME=$(shipctl get_resource_version_key "$RES_FILE" "S3_FILENAME")
+               FILE_BUCKET=$(shipctl get_resource_version_key "$RES_FILE" "S3_BUCKET")
+               OS=$(shipctl get_resource_version_key "$RES_FILE" "OS")
+               ARCHITECTURE=$(shipctl get_resource_version_key "$RES_FILE" "ARCHITECTURE")
+            - S3_BUCKET_FROM_PATH="$FILE_BUCKET""$FILE_NAME"
+            - S3_BUCKET_TO_PATH="$ARTIFACTS_BUCKET/$REL_VER/reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
+            - aws s3 cp --acl public-read "$S3_BUCKET_FROM_PATH" "$S3_BUCKET_TO_PATH"
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
