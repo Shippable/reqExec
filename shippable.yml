@@ -8,7 +8,7 @@ build:
     - shellcheck -s bash $(find ./ -name "*.sh")
 
 resources:
-  - name: reqExec_repo
+  - name: reqExec_sh_repo
     type: gitRepo
     integration: avinci_gh
     pointer:
@@ -22,7 +22,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-      - IN: reqExec_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -39,8 +39,8 @@ jobs:
               imageName: drydock/u16pytall
               imageTag: v6.2.4
           script:
-            - pushd $(shipctl get_resource_state "reqExec_repo")
-            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - pushd $(shipctl get_resource_state "reqExec_sh_repo")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
             - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
@@ -60,7 +60,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-      - IN: reqExec_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -75,8 +75,8 @@ jobs:
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
           script:
-            - pushd $(shipctl get_resource_state "reqExec_repo")
-            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - pushd $(shipctl get_resource_state "reqExec_sh_repo")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
             - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
@@ -96,7 +96,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-      - IN: reqExec_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -113,8 +113,8 @@ jobs:
               imageName: drydock/c7pytall
               imageTag: v6.4.4
           script:
-            - pushd $(shipctl get_resource_state "reqExec_repo")
-            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - pushd $(shipctl get_resource_state "reqExec_sh_repo")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
             - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
@@ -135,7 +135,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-      - IN: reqExec_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -150,8 +150,8 @@ jobs:
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
           script:
-            - pushd $(shipctl get_resource_state "reqExec_repo")
-            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - pushd $(shipctl get_resource_state "reqExec_sh_repo")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
             - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
@@ -175,7 +175,7 @@ jobs:
     dependencyMode: strict
     steps:
       - IN: reqExec_runCI
-      - IN: reqExec_repo
+      - IN: reqExec_sh_repo
         switch: off
       - IN: shipit_bits_access_cli
         switch: off
@@ -195,8 +195,8 @@ jobs:
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
           script:
-            - pushd $(shipctl get_resource_state "reqExec_repo")
-            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
+            - pushd $(shipctl get_resource_state "reqExec_sh_repo")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
             - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
             - PACK_SCRIPT="./package/$ARCHITECTURE/$OS/package.sh"
             - S3_BUCKET_BINARY_DIR="$ARTIFACTS_BUCKET/$REL_VER/"
@@ -219,7 +219,7 @@ jobs:
       - IN: reqExec_runCI
       - IN: shipit_bits_access_cli
         switch: off
-      - IN: reqExec_repo
+      - IN: reqExec_sh_repo
       - TASK:
           name: w2k16_reqexec_pack
           runtime:
@@ -232,8 +232,8 @@ jobs:
                 - BINARY_DIR: "/tmp/reqExec"
           script:
             - $ErrorActionPreference = "Stop"
-            - $env:REPO_COMMIT = $(shipctl get_resource_version_key "reqExec_repo" "shaData.commitSha")
-            - $env:REQ_EXEC_PATH = $(shipctl get_resource_state "reqExec_repo")
+            - $env:REPO_COMMIT = $(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
+            - $env:REQ_EXEC_PATH = $(shipctl get_resource_state "reqExec_sh_repo")
             - $env:REQ_EXEC_PACKAGE_PATH = [System.IO.Path]::Combine($env:REQ_EXEC_PATH, "package", $env:ARCHITECTURE, $env:OS)
             - $env:REQ_EXEC_BINARY_DIR = Join-Path "$env:TEMP" "reqExec"
             - $env:REQ_EXEC_BINARY_ZIP = "reqExec-${env:REL_VER}-${env:ARCHITECTURE}-${env:OS}.zip"
