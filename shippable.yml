@@ -449,3 +449,48 @@ jobs:
     on_success:
       script:
         - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT" "S3_FILENAME=$S3_BUCKET_TO_PATH" "ARCHITECTURE=$ARCHITECTURE" "OS=$OS"
+
+  - name: reqExec_repo_tag
+    type: runSh
+    triggerMode: parallel
+    dependencyMode: strict
+    steps:
+      - IN: prod_release
+      - IN: reqExec_sh_repo
+        switch: off
+      - IN: shipit_gh_ssh
+        switch: off
+      - TASK:
+          name: reqExec_tag
+          runtime:
+            options:
+              env:
+                - RES_VER: "prod_release"
+                - RES_REPO: "reqExec_sh_repo"
+                - GIT_PATH: "git@github.com:Shippable/reqExec.git"
+          script:
+            - REL_VER=$(shipctl get_resource_version_key "$RES_VER" "versionName")
+            - REPO_COMMIT=$(shipctl get_resource_version_key "$RES_REPO" "shaData.commitSha")
+            - |
+               pushd $(shipctl get_resource_meta "shipit_gh_ssh")
+                 shipctl get_json_value integration.json 'privateKey' > gh_ssh.key
+                 chmod 600 gh_ssh.key
+                 ssh-add gh_ssh.key
+               popd
+            - pushd $(shipctl get_resource_state "$RES_REPO")
+            - |
+               git remote add up $GIT_PATH
+               git remote -v
+               git checkout master
+            - |
+               git pull --tags
+               if git tag -d $REL_VER; then
+                 git push --delete up $REL_VER
+               fi
+            - |
+               git checkout $REPO_COMMIT
+               git tag $REL_VER
+               git push up $REL_VER
+    on_success:
+      script:
+        - shipctl put_resource_state_multi $JOB_NAME "versionName=$REL_VER" "TAG_COMMIT_SHA=$REPO_COMMIT"
