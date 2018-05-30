@@ -214,7 +214,6 @@ jobs:
     dependencyMode: strict
     runtime:
       nodePool: w2k16_cache
-      container: false
     steps:
       - IN: reqExec_runCI
       - IN: shipit_bits_access_cli
