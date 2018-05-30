@@ -55,7 +55,7 @@ jobs:
   - name: u14_reqExec_x8664_pack
     type: runSh
     runtime:
-      nodePool: x86_u1404_dyn_large_01
+      nodePool: u14_cache_x86
     triggerMode: parallel
     dependencyMode: strict
     steps:
@@ -129,7 +129,7 @@ jobs:
   - name: macOS10_reqExec_x8664_pack
     type: runSh
     runtime:
-      nodePool: x86_m10_cus_01
+      nodePool: mac10
       container: false
     triggerMode: parallel
     dependencyMode: strict
