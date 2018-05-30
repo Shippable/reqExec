@@ -150,6 +150,7 @@ jobs:
                 - REL_VER: "master"
                 - BINARY_DIR: "/tmp/reqExec"
           script:
+            - pip install virtualenv
             - pushd $(shipctl get_resource_state "reqExec_sh_repo")
             - REPO_COMMIT=$(shipctl get_resource_version_key "reqExec_sh_repo" "shaData.commitSha")
             - BINARY_TAR="reqExec-$REL_VER-$ARCHITECTURE-$OS.tar.gz"
