@@ -212,7 +212,7 @@ jobs:
     triggerMode: parallel
     dependencyMode: strict
     runtime:
-      nodePool: x86_w16_cus_01
+      nodePool: w2k16_cache
       container: false
     steps:
       - IN: reqExec_runCI
