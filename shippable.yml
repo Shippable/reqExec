@@ -91,7 +91,7 @@ jobs:
   - name: c7_reqExec_x8664_pack
     type: runSh
     runtime:
-      nodePool: x86_c07_cus_01
+      nodePool: c7_cache
     triggerMode: parallel
     dependencyMode: strict
     steps:
