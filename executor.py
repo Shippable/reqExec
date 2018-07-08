@@ -226,6 +226,9 @@ class Executor(object):
         with self._console_buffer_lock:
             self._console_buffer.append(console_out)
 
+        if len(self._console_buffer) > self._config['CONSOLE_BUFFER_LENGTH']:
+            self._flush_console_buffer()
+
     def _set_console_flush_timer(self):
         """
         Calls _flush_console_buffer to flush console buffers in constant
