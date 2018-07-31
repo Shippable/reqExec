@@ -43,3 +43,13 @@ class Config(dict):
             self['LOG_LEVEL'] = logging.INFO
         elif self['RUN_MODE'] == 'dev':
             self['LOG_LEVEL'] = logging.DEBUG
+
+        # New build runner switch/params
+        self['IS_NEW_BUILD_RUNNER_SUBSCRIPTION'] = \
+            self.get('IS_NEW_BUILD_RUNNER_SUBSCRIPTION') == 'true'
+        self['MAX_LOG_LINES_TO_FLUSH'] = \
+            self.get('MAX_LOG_LINES_TO_FLUSH', 20)
+        self['MAX_LOGS_FLUSH_WAIT_TIME_IN_S'] = \
+            self.get('MAX_LOGS_FLUSH_WAIT_TIME_IN_S', 3)
+        self['LOGS_FILE_READ_WAIT_TIME_IN_S'] = \
+            self.get('LOGS_FILE_READ_WAIT_TIME_IN_S', 0.1)
