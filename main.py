@@ -5,6 +5,7 @@ Entrypoint to reqExec
 import sys
 from config import Config
 from executor import Executor
+from executor2 import Executor2
 
 def main():
     """
@@ -22,7 +23,11 @@ def main():
         job_envs_path = sys.argv[2]
 
     config = Config(script_path, job_envs_path)
-    ex = Executor(config)
+    if config['IS_NEW_BUILD_RUNNER_SUBSCRIPTION']:
+        ex = Executor2(config)
+    else:
+        ex = Executor(config)
+
     ex.execute()
     sys.exit(ex.exit_code)
 

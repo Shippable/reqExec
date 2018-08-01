@@ -2,9 +2,9 @@
 min-public-methods=1
 
 [MESSAGES CONTROL]
-disable=broad-except,no-member
+disable=broad-except,no-member,duplicate-code
 
 [DESIGN]
 max-branches=15
 max-statements=60
-max-attributes=15
+max-attributes=16
