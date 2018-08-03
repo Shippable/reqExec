@@ -143,6 +143,19 @@ class Executor2(object):
             'buildJobId': self._config['BUILD_JOB_ID'],
             'buildJobConsoles': []
         }
+
+        # Add a hidden version notice.
+        # NOTE: Remove this once we switch to this executor completely.
+        logs_to_post['buildJobConsoles'].append({
+            'consoleId': str(uuid.uuid4()),
+            'parentConsoleId': 'root',
+            'type': 'grp',
+            'message': 'NOTICE: Executor version: 2',
+            'timestamp': Executor2._get_timestamp(),
+            'isSuccess': True,
+            'isShown': False
+        })
+
         logs_last_posted_at = datetime.now()
 
         while True:
