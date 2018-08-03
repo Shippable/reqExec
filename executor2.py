@@ -146,12 +146,24 @@ class Executor2(object):
 
         # Add a hidden version notice.
         # NOTE: Remove this once we switch to this executor completely.
+        notice_console_id = str(uuid.uuid4())
+        notice_message = 'Notice: Executor v2'
         logs_to_post['buildJobConsoles'].append({
-            'consoleId': str(uuid.uuid4()),
+            'consoleId': notice_console_id,
             'parentConsoleId': 'root',
             'type': 'grp',
-            'message': 'NOTICE: Executor version: 2',
+            'message': notice_message,
             'timestamp': Executor2._get_timestamp(),
+            'isShown': False
+        })
+
+        logs_to_post['buildJobConsoles'].append({
+            'consoleId': notice_console_id,
+            'parentConsoleId': 'root',
+            'type': 'grp',
+            'message': notice_message,
+            'timestamp': Executor2._get_timestamp(),
+            'timestampEndedAt': Executor2._get_timestamp(),
             'isSuccess': True,
             'isShown': False
         })
