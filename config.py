@@ -48,8 +48,8 @@ class Config(dict):
         self['IS_NEW_BUILD_RUNNER_SUBSCRIPTION'] = \
             self.get('IS_NEW_BUILD_RUNNER_SUBSCRIPTION') == 'true'
         self['MAX_LOG_LINES_TO_FLUSH'] = \
-            self.get('MAX_LOG_LINES_TO_FLUSH', 20)
+            int(self.get('MAX_LOG_LINES_TO_FLUSH', 20))
         self['MAX_LOGS_FLUSH_WAIT_TIME_IN_S'] = \
-            self.get('MAX_LOGS_FLUSH_WAIT_TIME_IN_S', 3)
+            float(self.get('MAX_LOGS_FLUSH_WAIT_TIME_IN_S', 3))
         self['LOGS_FILE_READ_WAIT_TIME_IN_S'] = \
-            self.get('LOGS_FILE_READ_WAIT_TIME_IN_S', 0.1)
+            float(self.get('LOGS_FILE_READ_WAIT_TIME_IN_S', 0.1))
