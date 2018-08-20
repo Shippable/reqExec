@@ -198,7 +198,8 @@ class Executor2(object):
                     and_break = True
                 # If its been a while since we posted logs, post.
                 elif (datetime.now() - logs_last_posted_at).total_seconds() \
-                    > self._config['MAX_LOGS_FLUSH_WAIT_TIME_IN_S']:
+                    > self._config['MAX_LOGS_FLUSH_WAIT_TIME_IN_S'] \
+                    and logs_to_post['buildJobConsoles']:
                     post_logs = True
                 # Sleep a bit if there hasn't been any activity.
                 else:
