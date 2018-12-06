@@ -40,6 +40,9 @@ pip install -r ./requirements/dev.txt
 
 ### Packaging binaries
 
+Any merged change in the project triggers Shippable assembly lines to compile
+`reqExec` for all supported platforms and push the updated binaries  with `master` tag.
+
 Use `./package/<ARCHITECTURE>/<OS>/package.<EXT>` to package binaries. The following are supported:
 
 | ARCHITECTURE   | OS                  | EXT  |
