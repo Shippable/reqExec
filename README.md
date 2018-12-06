@@ -9,7 +9,7 @@ step, it either
 - calls `reqExec` directly to run build on the host, or
 - spins up a `reqExec` mounted Docker container that runs the build in the container
 
-Unlike [reqProck](https://github.com/shippable/reqProc) and [reqKick](https://github.com/shippable/reqKick),
+Unlike [reqProc](https://github.com/shippable/reqProc) and [reqKick](https://github.com/shippable/reqKick),
 `reqExec` is not an always-running agent, but a single platform-specific compiled binary that is responsible
 for following tasks:
 
