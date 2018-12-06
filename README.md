@@ -5,6 +5,7 @@
 `reqExec` is the component on the build node that executes the build steps.
 Once [reqKick](https://github.com/shippable/reqKick) decides to run a build
 step, it either
+
     - call `reqExec` directly to run build on the host, or
     - spins up a `reqExec` mounted Docker container that runs the build in the container
 Unlike [reqProck](https://github.com/shippable/reqProc) and [reqKick](https://github.com/shippable/reqKick),
